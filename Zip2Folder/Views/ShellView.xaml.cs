@@ -10,17 +10,25 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Zip2Folder.ViewModels;
 
-namespace Zip2Folder
+namespace Zip2Folder.Views
 {
     /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
+    /// ShellView.xaml の相互作用ロジック
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class ShellView : Window
     {
-        public MainWindow()
+        private ShellViewModel ViewModel
+        {
+            get
+            {
+                return DataContext as ShellViewModel;
+            }
+        }
+
+        public ShellView()
         {
             InitializeComponent();
         }
