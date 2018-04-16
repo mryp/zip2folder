@@ -6,15 +6,10 @@
         xmlns:local="clr-namespace:Zip2Folder.Views"
         xmlns:cal="http://www.caliburnproject.org" 
         mc:Ignorable="d"
-        Title="Zip to Folder" Height="211" Width="432">
-    <Grid>
-        <TextBox Margin="10,10,0,0" TextWrapping="Wrap" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="318"
-                 Text="{Binding FolderPath}"/>
-        <Button Content="参照" HorizontalAlignment="Left" Margin="333,10,0,0" VerticalAlignment="Top" Width="75" Height="24" 
-                cal:Message.Attach="[Event Click] = [Action SetSelectFolder]"/>
-        <Button Content="開始" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" Width="398" Height="33"
-                cal:Message.Attach="[Event Click] = [Action Start]"/>
-        <ProgressBar HorizontalAlignment="Left" Height="19" Margin="10,90,0,0" VerticalAlignment="Top" Width="398"
-                Minimum="0" Maximum="100" Value="{Binding ProgressValue}"/>
+        Width="640" Height="640"
+        Title="Zip to Folder">
+    <Grid Background="Pink">
+        <Frame cal:Message.Attach="RegisterFrame($source)" DataContext="{x:Null}"
+               NavigationUIVisibility="Hidden" />
     </Grid>
 </Window>

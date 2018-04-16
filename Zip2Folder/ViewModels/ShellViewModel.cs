@@ -9,114 +9,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Zip2Folder.ViewModels
 {
     public class ShellViewModel : Screen
     {
-        private string _folderPath;
-        private int _progressValue;
+        private readonly SimpleContainer _container;
+        private INavigationService _navigationService;
 
-        public string FolderPath
+        public ShellViewModel(SimpleContainer container)
         {
-            get { return _folderPath; }
-            set
-            {
-                _folderPath = value;
-                NotifyOfPropertyChange(() => FolderPath);
-            }
+            this._container = container;
         }
 
-        public int ProgressValue
+        public void RegisterFrame(Frame frame)
         {
-            get { return _progressValue; }
-            set
-            {
-                _progressValue = value;
-                NotifyOfPropertyChange(() => ProgressValue);
-            }
-        }
-
-        public ShellViewModel()
-        {
-            this.FolderPath = "";
-            this.ProgressValue = 0;
-        }
-
-        public void SetSelectFolder()
-        {
-            //https://github.com/aybe/Windows-API-Code-Pack-1.1 を使用
-            var dialog = new CommonOpenFileDialog("フォルダ選択")
-            {
-                IsFolderPicker = true,
-            };
-            if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-            {
-                this.FolderPath = dialog.FileName;
-            }
-        }
-
-        public void Start()
-        {
-            Task.Run(() => {
-                string message = unzipFilesFromFolder(this.FolderPath);
-                if (string.IsNullOrEmpty(message))
-                {
-                    MessageBox.Show("完了");
-                }
-                else
-                {
-                    MessageBox.Show(message, "エラー"
-                        , MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            });
-        }
-
-        private string unzipFilesFromFolder(string dirPath)
-        {
-            if (!Directory.Exists(dirPath))
-            {
-                return "指定したフォルダが見つかりません";
-            }
-
-            string[] files = Directory.GetFiles(dirPath, "*.zip");
-            if (files.Length == 0)
-            {
-                return "ZIPファイルが見つかりません";
-            }
-
-            foreach (string file in files)
-            {
-                string result = unzipFile(file);
-                if (!string.IsNullOrEmpty(result))
-                {
-                    return result;
-                }
-            }
-
-            return "";
-        }
-
-        private string unzipFile(string zipPath)
-        {
-            string outputPath = Path.Combine(Path.GetDirectoryName(zipPath),
-                Path.GetFileNameWithoutExtension(zipPath));
-            if (Directory.Exists(outputPath))
-            {
-                return "フォルダは既に存在しています";
-            }
-
-            try
-            {
-                Directory.CreateDirectory(outputPath);
-                ZipFile.ExtractToDirectory(zipPath, outputPath);
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
-
-            return "";
+            _navigationService = new FrameAdapter(frame);
+            _container.Instance(_navigationService);
+            _navigationService.NavigateToViewModel(typeof(StartViewModel));
         }
     }
 }
