@@ -13,11 +13,17 @@
       >
 
     <DockPanel LastChildFill="True">
-        <ProgressBar Height="32" DockPanel.Dock="Top" Margin="10,10,10,10" Minimum="0" Maximum="100"
+        <ProgressBar Height="32" DockPanel.Dock="Top" Margin="10,10,10,10" Minimum="0" 
+                     Maximum="{Binding ProgressMax}"
                      Value="{Binding ProgressValue}"/>
         <Button Height="48" DockPanel.Dock="Bottom" Margin="10,10,10,10"
                 Content="{Binding CancelButtonName}"
                 cal:Message.Attach="[Event Click] = [Action Cancel]" />
-        <ListBox  Margin="10,0,10,0" />
+        <ListBox Margin="10,0,10,0"
+                 ItemsSource="{Binding ProgressItemList}"
+                 SelectedItem="{Binding SelectedLogItem}"
+                 cal:Message.Attach="[Event MouseDoubleClick]=[Action CopyLogItem]">
+            
+        </ListBox>
     </DockPanel>
 </Page>

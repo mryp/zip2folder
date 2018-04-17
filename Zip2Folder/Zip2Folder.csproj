@@ -80,6 +80,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Bootstrapper.cs" />
+    <Compile Include="Models\UnzipLogItem.cs" />
+    <Compile Include="Models\UnzipManager.cs" />
     <Compile Include="ViewModels\ProcViewModel.cs" />
     <Compile Include="ViewModels\ShellViewModel.cs" />
     <Compile Include="ViewModels\StartViewModel.cs" />

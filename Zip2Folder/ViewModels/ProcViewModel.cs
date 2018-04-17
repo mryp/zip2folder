@@ -1,26 +1,34 @@
 ﻿using Caliburn.Micro;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using Zip2Folder.Models;
 
 namespace Zip2Folder.ViewModels
 {
     public class ProcViewModel : Screen
     {
+        private const string BUTTON_NAME_CANCEL = "キャンセル";
+        private const string BUTTON_NAME_BACK = "戻る";
+
         private readonly INavigationService _navigationService;
-        private string _folderPath;
         private string _cancelButtonName;
+        private int _progressMax;
         private int _progressValue;
+        private object _selectedLogItem;
+        private UnzipManager _unzip;
 
         public string FolderPath
         {
-            get { return _folderPath; }
-            set { Set(ref _folderPath, value); }
+            get;
+            set;
         }
 
         public string CancelButtonName
@@ -30,6 +38,16 @@ namespace Zip2Folder.ViewModels
             {
                 _cancelButtonName = value;
                 NotifyOfPropertyChange(() => CancelButtonName);
+            }
+        }
+
+        public int ProgressMax
+        {
+            get { return _progressMax; }
+            set
+            {
+                _progressMax = value;
+                NotifyOfPropertyChange(() => ProgressMax);
             }
         }
 
@@ -43,79 +61,88 @@ namespace Zip2Folder.ViewModels
             }
         }
 
+        public object SelectedLogItem
+        {
+            get { return _selectedLogItem; }
+            set
+            {
+                _selectedLogItem = value;
+                NotifyOfPropertyChange(() => SelectedLogItem);
+            }
+        }
+
+        public BindableCollection<UnzipLogItem> ProgressItemList
+        {
+            get;
+            set;
+        }
+
         public ProcViewModel(INavigationService navigationService)
         {
             _navigationService = navigationService;
-            this.CancelButtonName = "キャンセル";
-            this.ProgressValue = 50;
-        }
-
-        public void Cancel()
-        {
-            _navigationService.For<StartViewModel>().Navigate();
+            this.CancelButtonName = BUTTON_NAME_CANCEL;
+            this.ProgressItemList = new BindableCollection<UnzipLogItem>();
         }
 
         public void Loaded()
         {
-            Task.Run(() => {
-                string message = unzipFilesFromFolder(this.FolderPath);
-                if (string.IsNullOrEmpty(message))
-                {
-                    MessageBox.Show("完了");
-                }
-                else
-                {
-                    MessageBox.Show(message, "エラー"
-                        , MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            });
+            _unzip = new UnzipManager(this.FolderPath);
+            _unzip.Loaded += unzip_Loaded;
+            _unzip.ProgressChanged += unzip_ProgressChanged;
+            _unzip.Completed += unzip_Completed;
+            _unzip.ExtractAsync();
         }
 
-        private string unzipFilesFromFolder(string dirPath)
+        public void Cancel()
         {
-            if (!Directory.Exists(dirPath))
+            if (this.CancelButtonName == BUTTON_NAME_CANCEL)
             {
-                return "指定したフォルダが見つかりません";
+                _unzip.Cancel();
             }
-
-            string[] files = Directory.GetFiles(dirPath, "*.zip");
-            if (files.Length == 0)
+            else
             {
-                return "ZIPファイルが見つかりません";
+                _navigationService.For<StartViewModel>().Navigate();
             }
-
-            foreach (string file in files)
-            {
-                string result = unzipFile(file);
-                if (!string.IsNullOrEmpty(result))
-                {
-                    return result;
-                }
-            }
-
-            return "";
         }
 
-        private string unzipFile(string zipPath)
+        public void CopyLogItem()
         {
-            string outputPath = Path.Combine(Path.GetDirectoryName(zipPath),
-                Path.GetFileNameWithoutExtension(zipPath));
-            if (Directory.Exists(outputPath))
+            if (SelectedLogItem is UnzipLogItem)
             {
-                return "フォルダは既に存在しています";
+                UnzipLogItem item = (UnzipLogItem)SelectedLogItem;
+                Clipboard.SetData(DataFormats.Text, item.FilePath);
+                MessageBox.Show(Path.GetFileName(item.FilePath) + "のパスをクリップボードにコピーしました。");
             }
+        }
 
-            try
-            {
-                Directory.CreateDirectory(outputPath);
-                ZipFile.ExtractToDirectory(zipPath, outputPath);
-            }
-            catch (Exception e)
-            {
-                return e.Message;
-            }
+        private void unzip_Loaded(object sender, int fileCount)
+        {
+            this.ProgressValue = 0;
+            this.ProgressMax = fileCount;
+        }
 
-            return "";
+        private void unzip_ProgressChanged(object sender, UnzipLogItem logItem)
+        {
+            Debug.WriteLine(logItem);
+            this.ProgressValue = this.ProgressValue + 1;
+            ProgressItemList.Add(logItem);
+        }
+
+        private void unzip_Completed(object sender, UnzipCompletedStatus result)
+        {
+            switch (result)
+            {
+                case UnzipCompletedStatus.Completed:
+                    MessageBox.Show("すべてのファイル処理が完了しました");
+                    break;
+                case UnzipCompletedStatus.Untreated:
+                    MessageBox.Show("処理を行うファイルがありません");
+                    break;
+                case UnzipCompletedStatus.Cancel:
+                    MessageBox.Show("キャンセルされました");
+                    break;
+            }
+            this.CancelButtonName = BUTTON_NAME_BACK;
         }
     }
 }
