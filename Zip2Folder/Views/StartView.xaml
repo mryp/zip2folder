@@ -17,7 +17,7 @@
             <TextBox TextWrapping="NoWrap" Height="24"
                  Text="{Binding FolderPath}"/>
         </DockPanel>
-        <Button Content="開始" Height="48" Margin="10,10,10,0"
+        <Button Content="処理開始" Height="48" Margin="10,10,10,0"
                 cal:Message.Attach="[Event Click] = [Action Start]"/>
     </StackPanel>
 </Page>

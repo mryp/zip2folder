@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         Width="640" Height="640"
         Title="Zip to Folder">
-    <Grid Background="Pink">
+    <Grid>
         <Frame cal:Message.Attach="RegisterFrame($source)" DataContext="{x:Null}"
                NavigationUIVisibility="Hidden" />
     </Grid>
